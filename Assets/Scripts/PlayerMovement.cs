@@ -28,8 +28,16 @@ public class PlayerMovement : MonoBehaviour
             joystickInput = Gamepad.current.leftStick.ReadValue();
         }
 
-        // 3. Суммируем оба ввода и нормализуем
-        moveInput = (keyboardInput + joystickInput).normalized;
+        //Ввод с гироскопа (только на мобильных устройствах)
+        Vector2 gyroInput = Vector2.zero;
+        if (Application.isMobilePlatform && SystemInfo.supportsGyroscope)
+        {
+            // Читаем направление из нашего скрипта GyroInput
+            gyroInput = GyroInput.GyroDirection;
+        }
+
+        // 4. Суммируем все вводы и нормализуем
+        moveInput = (keyboardInput + joystickInput + gyroInput).normalized;
     }
 
     private void FixedUpdate()
