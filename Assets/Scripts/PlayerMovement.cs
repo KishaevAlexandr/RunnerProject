@@ -1,10 +1,14 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Обязательно добавить для Gamepad
+using UnityEngine.InputSystem; // Обязательно для Gamepad
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Настройки движения")]
     [SerializeField] private float moveSpeed = 5f;
+
+    private float baseSpeed;
+    private float speedMultiplier = 1f;
+    private float boostTimer;
 
     private Rigidbody2D rb;
     private Vector2 moveInput;
@@ -12,23 +16,36 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        // Сохраняем базовую скорость при старте
+        baseSpeed = moveSpeed;
     }
 
     private void Update()
     {
-        //Ввод с клавиатуры 
+        //Таймер ускорения
+        if (boostTimer > 0)
+        {
+            boostTimer -= Time.deltaTime;
+            if (boostTimer <= 0)
+            {
+                speedMultiplier = 1f; // Возвращаем обычную скорость
+            }
+        }
+
+        // 1. Ввод с клавиатуры 
         float x = Input.GetAxisRaw("Horizontal");
         float y = Input.GetAxisRaw("Vertical");
         Vector2 keyboardInput = new Vector2(x, y);
 
-        //Ввод с виртуального джойстика
+        // 2. Ввод с виртуального джойстика
         Vector2 joystickInput = Vector2.zero;
         if (Gamepad.current != null)
         {
             joystickInput = Gamepad.current.leftStick.ReadValue();
         }
 
-        //Ввод с гироскопа (только на мобильных устройствах)
+        // 3. Ввод с гироскопа (только на мобильных устройствах)
         Vector2 gyroInput = Vector2.zero;
         if (Application.isMobilePlatform && SystemInfo.supportsGyroscope)
         {
@@ -42,7 +59,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Движение через физику
-        rb.MovePosition(rb.position + moveInput * moveSpeed * Time.fixedDeltaTime);
+        // Движение через физику (добавлен множитель speedMultiplier)
+        rb.MovePosition(rb.position + moveInput * (baseSpeed * speedMultiplier) * Time.fixedDeltaTime);
+    }
+
+    public void ApplySpeedBoost(float multiplier, float duration)
+    {
+        speedMultiplier = multiplier;
+        boostTimer = duration;
     }
 }
