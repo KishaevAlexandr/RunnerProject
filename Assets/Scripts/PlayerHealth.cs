@@ -1,54 +1,49 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Обязательно для перезапуска сцены
+// Убираем SceneManagement, так как теперь перезапуск будет через кнопку
 
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Настройки здоровья")]
-    [SerializeField] private int maxLives = 3; // Максимальное количество жизней
+    [SerializeField] private int maxLives = 3;
     private int currentLives;
 
-    // Свойства для чтения из других скриптов
-    public int CurrentLives => currentLives;
-    public int MaxLives => maxLives;
+    [Header("UI")]
+    [SerializeField] private GameObject gameOverPanel; // Ссылка на нашу панель
 
     private void Awake()
     {
-        // При старте игры устанавливаем текущее здоровье равным максимальному
         currentLives = maxLives;
     }
 
-    // Метод для получения урона 
     public void TakeDamage(int amount)
     {
         currentLives -= amount;
         Debug.Log($"Игрок получил {amount} урона. Осталось жизней: {currentLives}");
 
-        // Если жизни закончились — перезапускаем уровень
         if (currentLives <= 0)
         {
-            RestartLevel();
+            Die();
         }
     }
 
-    // Метод для восстановления здоровья 
     public void Heal(int amount)
     {
         currentLives += amount;
-
-        // Не позволяем здоровью превысить максимум
-        if (currentLives > maxLives)
-        {
-            currentLives = maxLives;
-        }
-
-        Debug.Log($"Игрок восстановил {amount} здоровья. Текущее здоровье: {currentLives}");
+        if (currentLives > maxLives) currentLives = maxLives;
+        Debug.Log($"Игрок восстановил здоровье. Текущее: {currentLives}");
     }
 
-    private void RestartLevel()
+    private void Die()
     {
-        Debug.Log("Игрок погиб! Перезапуск уровня...");
+        Debug.Log("Игрок погиб!");
 
-        // Загружаем текущую сцену заново 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Включаем панель Game Over
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
+
+        // Останавливаем время в игре (чтобы враги/движение замерли)
+        Time.timeScale = 0f;
     }
 }
