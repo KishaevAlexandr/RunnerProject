@@ -1,12 +1,13 @@
 using UnityEngine;
+using UnityEngine.InputSystem; // Обязательно добавить для Gamepad
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Настройки движения")]
-    [SerializeField] private float moveSpeed = 5f; // Скорость персонажа
+    [SerializeField] private float moveSpeed = 5f;
 
-    private Rigidbody2D rb; // Ссылка на физическое тело
-    private Vector2 moveInput; // Вектор направления движения
+    private Rigidbody2D rb;
+    private Vector2 moveInput;
 
     private void Awake()
     {
@@ -15,19 +16,25 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        // Update вызывается каждый кадр. Здесь мы считываем ввод с клавиатуры.
-        float x = Input.GetAxisRaw("Horizontal"); //Стрелки Влево / Вправо
-        float y = Input.GetAxisRaw("Vertical");   // Стрелки Вверх / Вниз
+        //Ввод с клавиатуры 
+        float x = Input.GetAxisRaw("Horizontal");
+        float y = Input.GetAxisRaw("Vertical");
+        Vector2 keyboardInput = new Vector2(x, y);
 
-        // Формируем вектор, чтобы по диагонали персонаж не двигался быстрее.
-        moveInput = new Vector2(x, y).normalized;
+        //Ввод с виртуального джойстика
+        Vector2 joystickInput = Vector2.zero;
+        if (Gamepad.current != null)
+        {
+            joystickInput = Gamepad.current.leftStick.ReadValue();
+        }
+
+        // 3. Суммируем оба ввода и нормализуем
+        moveInput = (keyboardInput + joystickInput).normalized;
     }
 
     private void FixedUpdate()
     {
-        // FixedUpdate вызывается с постоянной частотой (по умолчанию 50 раз в секунду).
-
-        // MovePosition перемещает объект в новую позицию с учетом физики и коллизий.
+        // Движение через физику
         rb.MovePosition(rb.position + moveInput * moveSpeed * Time.fixedDeltaTime);
     }
 }
