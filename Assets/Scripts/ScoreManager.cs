@@ -5,7 +5,12 @@ public class ScoreManager : MonoBehaviour
 {
     public static int CurrentScore { get; private set; } = 0;
 
+    [Header("UI Ссылки")]
     [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private GameObject winPanel;
+
+    [Header("Настройки")]
+    [SerializeField] private int winScore = 40;
 
     private void Awake()
     {
@@ -19,9 +24,16 @@ public class ScoreManager : MonoBehaviour
 
     public void AddScore(int amount)
     {
+
+        if (CurrentScore >= winScore) return;
+
         CurrentScore += amount;
         UpdateScoreUI();
-        Debug.Log("Очки добавлены! Текущий счет: " + CurrentScore); // Это покажет в консоли, работает ли метод
+
+        if (CurrentScore >= winScore)
+        {
+            WinGame();
+        }
     }
 
     private void UpdateScoreUI()
@@ -30,9 +42,17 @@ public class ScoreManager : MonoBehaviour
         {
             scoreText.text = $"Счет: {CurrentScore}";
         }
-        else
+    }
+
+    private void WinGame()
+    {
+        Debug.Log("Победа!");
+
+        if (winPanel != null)
         {
-            Debug.LogError("Текст ScoreText не привязан в Инспекторе!");
+            winPanel.SetActive(true);
         }
+
+        Time.timeScale = 0f;
     }
 }
